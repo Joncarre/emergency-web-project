@@ -1,0 +1,30 @@
+---
+/**
+ * StateBadge — la FIRMA de la plataforma: la máquina de estados hecha visible.
+ * Un punto-beacon (pulsa si el estado está "abierto/activo") + etiqueta.
+ * El color es el único portador de significado; el resto es estructura neutra.
+ */
+import type { StatusTone } from '@/lib/engine/modules';
+
+interface Props {
+  tone: StatusTone;
+  label: string;
+  active?: boolean;
+  class?: string;
+}
+const { tone, label, active = false, class: className = '' } = Astro.props;
+
+const tones: Record<StatusTone, string> = {
+  danger: 'bg-danger-soft text-danger',
+  warning: 'bg-warning-soft text-warning',
+  success: 'bg-success-soft text-success',
+  info: 'bg-primary-soft text-primary',
+  neutral: 'bg-surface-3 text-fg-tertiary',
+};
+---
+<span
+  class={`inline-flex items-center gap-1.5 rounded-[var(--radius-full)] px-2.5 py-1 text-xs font-medium ${tones[tone]} ${className}`}
+>
+  <span class="beacon-dot" data-pulse={active ? 'true' : 'false'}></span>
+  {label}
+</span>

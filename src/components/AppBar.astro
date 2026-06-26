@@ -1,0 +1,39 @@
+---
+/**
+ * Barra superior fija. Izquierda: marca (beacon + nombre del evento) que vuelve
+ * al inicio. Derecha: idioma y tema (islas). Sticky con borde inferior; el color
+ * de fondo es el mismo del canvas (no fragmentar el espacio).
+ */
+import { deployment } from '@/config/deployment';
+import LanguageSwitcher from './LanguageSwitcher.tsx';
+import ThemeToggle from './ThemeToggle.tsx';
+
+const { lang, t } = Astro.locals;
+---
+<header class="sticky top-0 z-40 border-b border-border bg-bg/85 backdrop-blur supports-[backdrop-filter]:bg-bg/70">
+  <div class="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-4">
+    <a href="/" class="group flex min-w-0 items-center gap-2.5" aria-label={deployment.eventName}>
+      <span class="text-danger" aria-hidden="true">
+        <span class="beacon-dot" data-pulse="true"></span>
+      </span>
+      <span class="truncate text-sm font-semibold tracking-tight text-fg">
+        {deployment.eventName}
+      </span>
+    </a>
+
+    <div class="flex items-center gap-2">
+      <LanguageSwitcher
+        client:idle
+        lang={lang}
+        labelEs={t('lang.es')}
+        labelEn={t('lang.en')}
+        ariaLabel={t('lang.label')}
+      />
+      <ThemeToggle
+        client:idle
+        labelToggle={t('theme.toggle')}
+        labels={{ system: t('theme.system'), light: t('theme.light'), dark: t('theme.dark') }}
+      />
+    </div>
+  </div>
+</header>

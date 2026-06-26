@@ -1,0 +1,68 @@
+---
+import Layout from '@/components/Layout.astro';
+import Icon from '@/components/Icon.astro';
+import { deployment } from '@/config/deployment';
+import { getModule } from '@/lib/engine/modules';
+
+const { t } = Astro.locals;
+
+// Rutas de módulos implementados. Los no implementados se muestran como
+// "próximamente" (siguen declarados para reflejar el alcance del despliegue).
+const ROUTES: Partial<Record<string, string>> = { people: '/personas' };
+
+const modules = deployment.enabledModules.map((id) => {
+  const def = getModule(id);
+  return { def, route: ROUTES[id], available: def.implemented && !!ROUTES[id] };
+});
+---
+
+<Layout description={t('home.subtitle')}>
+  <section class="py-2">
+    <h1 class="text-2xl font-semibold tracking-tight text-fg">{deployment.eventName}</h1>
+    <p class="mt-1.5 text-[15px] leading-relaxed text-fg-tertiary">{t('home.subtitle')}</p>
+  </section>
+
+  <h2 class="mt-6 text-sm font-semibold uppercase tracking-wide text-fg-tertiary">
+    {t('home.choose')}
+  </h2>
+
+  <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    {
+      modules.map(({ def, route, available }) =>
+        available && route ? (
+          <a
+            href={route}
+            class="group flex items-center gap-4 rounded-[var(--radius-md)] border border-border bg-surface p-4 transition-colors hover:border-border-strong hover:bg-surface-2"
+          >
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-primary-soft text-primary">
+              <Icon name={def.icon} size={22} />
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block font-semibold text-fg">{t(def.labelKey as any)}</span>
+              <span class="block text-sm text-fg-tertiary">{t(`${def.labelKey}.desc` as any)}</span>
+            </span>
+            <span class="shrink-0 text-fg-muted transition-transform group-hover:translate-x-0.5">
+              <Icon name="chevron" size={18} />
+            </span>
+          </a>
+        ) : (
+          <div class="flex items-center gap-4 rounded-[var(--radius-md)] border border-dashed border-border bg-surface/40 p-4 opacity-70">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-surface-2 text-fg-tertiary">
+              <Icon name={def.icon} size={22} />
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block font-semibold text-fg-secondary">{t(def.labelKey as any)}</span>
+              <span class="mt-0.5 inline-block rounded-[var(--radius-full)] bg-surface-3 px-2 py-0.5 text-xs font-medium text-fg-tertiary">
+                {t('home.coming_soon')}
+              </span>
+            </span>
+          </div>
+        ),
+      )
+    }
+  </div>
+
+  <p class="mt-6 rounded-[var(--radius-md)] border border-border bg-surface-2 p-3 text-xs leading-relaxed text-fg-tertiary">
+    {t('home.consent')}
+  </p>
+</Layout>

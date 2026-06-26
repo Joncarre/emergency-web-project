@@ -1,0 +1,28 @@
+---
+/**
+ * Campo de formulario: etiqueta + control (slot) + ayuda opcional. Marca lo
+ * obligatorio/opcional de forma explícita (claridad bajo estrés).
+ */
+interface Props {
+  label: string;
+  for?: string;
+  required?: boolean;
+  hint?: string;
+}
+const { label, for: forId, required = false, hint } = Astro.props;
+const { t } = Astro.locals;
+---
+<div class="space-y-1.5">
+  <label for={forId} class="flex items-center gap-2 text-sm font-medium text-fg-secondary">
+    <span>{label}</span>
+    {
+      required ? (
+        <span class="text-xs text-danger" aria-hidden="true">*</span>
+      ) : (
+        <span class="text-xs font-normal text-fg-muted">({t('common.optional')})</span>
+      )
+    }
+  </label>
+  <slot />
+  {hint && <p class="text-xs text-fg-muted">{hint}</p>}
+</div>

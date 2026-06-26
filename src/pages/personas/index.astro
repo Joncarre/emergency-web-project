@@ -1,0 +1,60 @@
+---
+import Layout from '@/components/Layout.astro';
+import Icon from '@/components/Icon.astro';
+import Button from '@/components/Button.astro';
+import PersonResults from '@/components/PersonResults.tsx';
+import { getRepository } from '@/lib/repository';
+import type { PersonDirection } from '@/lib/engine/types';
+
+const { lang, t } = Astro.locals;
+const sp = Astro.url.searchParams;
+const dir = sp.get('direction');
+
+const filters = {
+  q: sp.get('q') ?? '',
+  status: sp.get('status') ?? '',
+  zone: sp.get('zone') ?? '',
+  direction: dir === 'searching' || dir === 'found' ? dir : '',
+};
+
+// Primer pintado con datos reales desde el repositorio (mismo proceso, sin red).
+const repo = getRepository();
+const directionFilter = (filters.direction || undefined) as PersonDirection | undefined;
+const [page, counts] = await Promise.all([
+  repo.listPeople({
+    q: filters.q || undefined,
+    status: filters.status || undefined,
+    zone: filters.zone || undefined,
+    direction: directionFilter,
+  }),
+  repo.countPeopleByStatus({
+    q: filters.q || undefined,
+    zone: filters.zone || undefined,
+    direction: directionFilter,
+  }),
+]);
+
+const initial = { items: page.items, nextCursor: page.nextCursor, counts };
+---
+
+<Layout title={t('module.people')} description={t('module.people.desc')}>
+  <a
+    href="/"
+    class="-ml-1 inline-flex items-center gap-1 text-sm text-fg-tertiary transition-colors hover:text-fg"
+  >
+    <Icon name="back" size={16} />
+    {t('nav.home')}
+  </a>
+
+  <div class="mt-2 flex items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold tracking-tight text-fg">{t('people.list.title')}</h1>
+    <Button href="/personas/nueva" size="sm">
+      <Icon name="plus" size={16} />
+      {t('people.list.new')}
+    </Button>
+  </div>
+
+  <div class="mt-4">
+    <PersonResults client:load lang={lang} initial={initial} initialFilters={filters} />
+  </div>
+</Layout>

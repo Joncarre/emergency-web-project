@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.output/
+.vercel/
+.netlify/
+
+# astro
+.astro/
+
+# secrets / environment (NUNCA commitear valores reales — ver .env.example)
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Claude Code (skills instaladas localmente; reinstalables con skillfish)
+.claude/
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# misc
+coverage/
+.cache/
+tmp/

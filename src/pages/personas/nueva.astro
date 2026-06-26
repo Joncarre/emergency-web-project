@@ -1,0 +1,25 @@
+---
+import Layout from '@/components/Layout.astro';
+import Icon from '@/components/Icon.astro';
+import PersonCreateForm from '@/components/PersonCreateForm.tsx';
+import { deployment } from '@/config/deployment';
+
+const { lang, t } = Astro.locals;
+---
+
+<Layout title={t('people.new.title')} description={t('people.new.intro')}>
+  <a
+    href="/personas"
+    class="-ml-1 inline-flex items-center gap-1 text-sm text-fg-tertiary transition-colors hover:text-fg"
+  >
+    <Icon name="back" size={16} />
+    {t('people.list.title')}
+  </a>
+
+  <h1 class="mt-2 text-xl font-semibold tracking-tight text-fg">{t('people.new.title')}</h1>
+  <p class="mt-1 text-sm text-fg-tertiary">{t('people.new.intro')}</p>
+
+  <div class="mt-5">
+    <PersonCreateForm client:load lang={lang} defaultZone={deployment.defaultZone} />
+  </div>
+</Layout>

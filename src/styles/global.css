@@ -1,0 +1,248 @@
+@import "tailwindcss";
+
+/* Dark mode controlado por atributo (lo fija ThemeToggle + cookie), no por
+   media query, para que la preferencia del usuario sea persistente y explícita. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ===========================================================================
+   Design tokens — dirección "triage board": sobrio, sereno, institucional.
+   Estructura neutra slate (60/30/10); el color es escaso y SIEMPRE semántico.
+   Una sola familia de tono por superficie; entre niveles solo cambia el lightness.
+   =========================================================================== */
+:root {
+  /* Superficies (claro): casi blanco frío -> blanco -> escalones sutiles */
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface-2: #eef2f7;
+  --surface-3: #e4eaf2;
+
+  /* Texto — cuatro niveles (primario / secundario / terciario / muted) */
+  --fg: #16202e;
+  --fg-secondary: #44515f;
+  --fg-tertiary: #67737f;
+  --fg-muted: #8a95a1;
+  --on-accent: #ffffff;
+
+  /* Bordes: baja opacidad, definen sin gritar */
+  --border: rgb(15 23 42 / 0.10);
+  --border-strong: rgb(15 23 42 / 0.16);
+
+  /* Controles (inputs): ligeramente hundidos -> fondo algo más oscuro */
+  --control-bg: #eef2f7;
+  --control-border: rgb(15 23 42 / 0.14);
+
+  /* Acento primario (acción/confianza) y semánticos */
+  --primary: #2b5fd0;
+  --primary-hover: #2350b6;
+  --primary-soft: #e7eefb;
+
+  --danger: #c1352b;       /* desaparecida / perdida / peligro */
+  --danger-soft: #fbe9e7;
+  --warning: #a96a06;      /* sin confirmar / pendiente */
+  --warning-soft: #fbf0dc;
+  --success: #1c7a4a;      /* localizada / a salvo / resuelta */
+  --success-soft: #e2f3ea;
+
+  /* Anillo de foco — accesibilidad bajo estrés: siempre visible */
+  --ring: #2b5fd0;
+
+  /* Radios — escala (input/botón -> tarjeta -> modal) */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+
+  /* Sombra reservada SOLO a elementos flotantes (overlays, barra fija) */
+  --shadow-overlay: 0 0 0 1px rgb(15 23 42 / 0.06),
+                    0 4px 12px -2px rgb(15 23 42 / 0.10),
+                    0 2px 6px -2px rgb(15 23 42 / 0.08);
+}
+
+[data-theme="dark"] {
+  --bg: #0c1117;
+  --surface: #121a24;
+  --surface-2: #16202c;
+  --surface-3: #1c2836;
+
+  --fg: #e6edf5;
+  --fg-secondary: #aeb9c6;
+  --fg-tertiary: #8593a2;
+  --fg-muted: #61707f;
+  --on-accent: #ffffff;
+
+  --border: rgb(255 255 255 / 0.10);
+  --border-strong: rgb(255 255 255 / 0.16);
+
+  --control-bg: #0e1620;
+  --control-border: rgb(255 255 255 / 0.14);
+
+  /* Semánticos desaturados/aclarados para legibilidad sobre fondo oscuro */
+  --primary: #5b8cf0;
+  --primary-hover: #729bf4;
+  --primary-soft: #16243f;
+
+  --danger: #f0635a;
+  --danger-soft: #34191a;
+  --warning: #e0a23c;
+  --warning-soft: #322512;
+  --success: #4fc488;
+  --success-soft: #102a20;
+
+  --ring: #5b8cf0;
+
+  /* En oscuro la sombra apenas se percibe: el borde hace el trabajo */
+  --shadow-overlay: 0 0 0 1px rgb(255 255 255 / 0.08),
+                    0 8px 24px -8px rgb(0 0 0 / 0.6);
+}
+
+/* Mapear los tokens a utilidades de Tailwind (bg-surface, text-fg, border-border…) */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  --color-fg: var(--fg);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-tertiary: var(--fg-tertiary);
+  --color-fg-muted: var(--fg-muted);
+  --color-on-accent: var(--on-accent);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-control: var(--control-bg);
+  --color-control-border: var(--control-border);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+
+  --color-ring: var(--ring);
+
+  /* Radios: se consumen como var(--radius-*) directamente (definidos en :root),
+     no como utilidades rounded-sm/md, para evitar referencias circulares. */
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/* ===========================================================================
+   Base
+   =========================================================================== */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv01", "cv03", "ss01";
+    text-wrap: pretty;
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+    letter-spacing: -0.011em;
+  }
+
+  /* Números dinámicos (edades, contadores, horas) sin saltos de layout */
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  /* Foco siempre visible y consistente (WCAG AA, uso por teclado bajo estrés) */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background-color: var(--primary-soft);
+  }
+}
+
+/* ===========================================================================
+   Beacon — la firma: indicador de estado con pulso muy sutil para lo "activo"
+   (desaparecida/perdida). Se desactiva con prefers-reduced-motion.
+   =========================================================================== */
+@layer components {
+  .beacon-dot {
+    position: relative;
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-full);
+    background-color: currentColor;
+    flex: none;
+  }
+  .beacon-dot[data-pulse="true"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-color: currentColor;
+    animation: beacon-pulse 2.4s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  }
+
+  @keyframes beacon-pulse {
+    0%   { transform: scale(1); opacity: 0.55; }
+    70%  { transform: scale(2.6); opacity: 0; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
+}
+
+/* ===========================================================================
+   Controles de formulario — inputs ligeramente "hundidos" (control-bg más
+   oscuro que la superficie), foco con anillo claro. Tokens de control propios
+   para poder ajustarlos sin tocar las superficies.
+   =========================================================================== */
+@layer components {
+  .input,
+  .textarea,
+  .select {
+    width: 100%;
+    background-color: var(--control-bg);
+    color: var(--fg);
+    border: 1px solid var(--control-border);
+    border-radius: var(--radius-sm);
+    padding: 0.625rem 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    min-height: 2.75rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input::placeholder,
+  .textarea::placeholder {
+    color: var(--fg-muted);
+  }
+  .input:focus,
+  .textarea:focus,
+  .select:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 22%, transparent);
+  }
+  .textarea {
+    min-height: 5.5rem;
+    resize: vertical;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

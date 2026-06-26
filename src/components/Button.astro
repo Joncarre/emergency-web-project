@@ -1,0 +1,61 @@
+---
+/**
+ * Botón / enlace-acción. Renderiza <a> si recibe href, si no <button>.
+ * Objetivo táctil >= 44px (uso a una mano, bajo estrés). Feedback de pulsación
+ * sutil (scale .97). Variantes ligadas a tokens semánticos.
+ */
+interface Props {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+  href?: string;
+  type?: 'button' | 'submit' | 'reset';
+  block?: boolean;
+  disabled?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  variant = 'primary',
+  size = 'md',
+  href,
+  type = 'button',
+  block = false,
+  disabled = false,
+  class: className = '',
+  ...rest
+} = Astro.props;
+
+const base =
+  'inline-flex items-center justify-center gap-2 rounded-[var(--radius-sm)] font-medium ' +
+  'transition-[transform,background-color,border-color,color] duration-150 ' +
+  'active:scale-[0.97] focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none select-none';
+
+const sizes: Record<string, string> = {
+  sm: 'min-h-9 px-3 text-sm',
+  md: 'min-h-11 px-4 text-sm',
+  lg: 'min-h-12 px-5 text-base',
+};
+
+const variants: Record<string, string> = {
+  primary: 'bg-primary text-on-accent hover:bg-primary-hover',
+  secondary: 'bg-surface-2 text-fg border border-border hover:bg-surface-3',
+  ghost: 'text-fg-secondary hover:bg-surface-2 hover:text-fg',
+  danger: 'bg-danger text-on-accent hover:brightness-110',
+};
+
+const cls = [base, sizes[size], variants[variant], block ? 'w-full' : '', className]
+  .filter(Boolean)
+  .join(' ');
+---
+{
+  href ? (
+    <a href={href} class={cls} {...rest}>
+      <slot />
+    </a>
+  ) : (
+    <button type={type} class={cls} disabled={disabled} {...rest}>
+      <slot />
+    </button>
+  )
+}
