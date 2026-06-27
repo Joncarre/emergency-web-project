@@ -145,8 +145,13 @@ const offers: ModuleDef = {
     { id: 'fulfilled', tone: 'success', active: false },
     { id: 'expired', tone: 'neutral', active: false },
   ],
-  transitions: [],
-  implemented: false,
+  transitions: [
+    { from: 'active', to: 'fulfilled', by: ['owner', 'moderator'], actionKey: 'offers.action.mark_fulfilled' },
+    { from: 'active', to: 'expired', by: ['owner', 'moderator'], actionKey: 'offers.action.mark_expired' },
+    { from: 'fulfilled', to: 'active', by: ['owner', 'moderator'], actionKey: 'offers.action.reopen' },
+    { from: 'expired', to: 'active', by: ['owner', 'moderator'], actionKey: 'offers.action.reopen' },
+  ],
+  implemented: true,
 };
 
 const map: ModuleDef = {

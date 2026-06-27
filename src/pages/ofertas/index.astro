@@ -1,0 +1,62 @@
+---
+import Layout from '@/components/Layout.astro';
+import Icon from '@/components/Icon.astro';
+import Button from '@/components/Button.astro';
+import CardResults from '@/components/CardResults.tsx';
+import { getRepository } from '@/lib/repository';
+import { ALL_OFFER_CATEGORIES } from '@/lib/engine/types';
+import type { OfferCategory, OfferKind } from '@/lib/engine/types';
+
+const { lang, t } = Astro.locals;
+const sp = Astro.url.searchParams;
+const kindRaw = sp.get('kind');
+const catRaw = sp.get('category');
+
+const filters = {
+  q: sp.get('q') ?? '',
+  status: sp.get('status') ?? '',
+  zone: sp.get('zone') ?? '',
+  kind: kindRaw === 'offer' || kindRaw === 'need' ? kindRaw : '',
+  category: (ALL_OFFER_CATEGORIES as readonly string[]).includes(catRaw ?? '') ? catRaw! : '',
+};
+
+const repo = getRepository();
+const kindFilter = (filters.kind || undefined) as OfferKind | undefined;
+const categoryFilter = (filters.category || undefined) as OfferCategory | undefined;
+const [page, counts] = await Promise.all([
+  repo.listOffers({
+    q: filters.q || undefined,
+    status: filters.status || undefined,
+    zone: filters.zone || undefined,
+    kind: kindFilter,
+    category: categoryFilter,
+  }),
+  repo.countOffersByStatus({
+    q: filters.q || undefined,
+    zone: filters.zone || undefined,
+    kind: kindFilter,
+    category: categoryFilter,
+  }),
+]);
+
+const initial = { items: page.items, nextCursor: page.nextCursor, counts };
+---
+
+<Layout title={t('module.offers')} description={t('module.offers.desc')}>
+  <a href="/" class="-ml-1 inline-flex items-center gap-1 text-sm text-fg-tertiary transition-colors hover:text-fg">
+    <Icon name="back" size={16} />
+    {t('nav.home')}
+  </a>
+
+  <div class="mt-2 flex items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold tracking-tight text-fg">{t('offers.list.title')}</h1>
+    <Button href="/ofertas/nueva" size="sm">
+      <Icon name="plus" size={16} />
+      {t('offers.list.new')}
+    </Button>
+  </div>
+
+  <div class="mt-4">
+    <CardResults client:load lang={lang} module="offers" initial={initial} initialFilters={filters} />
+  </div>
+</Layout>

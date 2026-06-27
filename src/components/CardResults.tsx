@@ -6,7 +6,17 @@
  */
 import type { ComponentChildren } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import type { AnyCard, GoodCard, ModuleId, PersonCard, PetCard, PetSpecies } from '@/lib/engine/types';
+import type {
+  AnyCard,
+  GoodCard,
+  GoodType,
+  ModuleId,
+  OfferCard,
+  PersonCard,
+  PetCard,
+  PetSpecies,
+} from '@/lib/engine/types';
+import { ALL_OFFER_CATEGORIES } from '@/lib/engine/types';
 import { getModule, getStatusDef, type StatusTone } from '@/lib/engine/modules';
 import { useTranslations, type Lang, type UIKey } from '@/i18n/index';
 import { timeAgo } from '@/lib/utils/format';
@@ -22,6 +32,9 @@ interface Filters {
   zone: string;
   direction: string;
   species: string;
+  goodType: string;
+  kind: string;
+  category: string;
 }
 interface Props {
   lang: Lang;
@@ -34,7 +47,12 @@ const ROUTES: Partial<Record<ModuleId, { detail: string; api: string }>> = {
   people: { detail: '/personas', api: '/api/personas' },
   pets: { detail: '/mascotas', api: '/api/mascotas' },
   goods: { detail: '/bienes', api: '/api/bienes' },
+  offers: { detail: '/ofertas', api: '/api/ofertas' },
 };
+
+const SPECIES: PetSpecies[] = ['dog', 'cat', 'other'];
+const GOOD_TYPES: GoodType[] = ['vehicle', 'machinery', 'other'];
+const OFFER_KINDS = ['offer', 'need'] as const;
 
 const TONE_CLASSES: Record<StatusTone, string> = {
   danger: 'bg-danger-soft text-danger',
@@ -115,10 +133,31 @@ function GoodBody({ card, lang }: { card: GoodCard; lang: Lang }) {
   );
 }
 
+function OfferBody({ card, lang }: { card: OfferCard; lang: Lang }) {
+  const t = useTranslations(lang);
+  const kindCls = card.kind === 'need' ? 'bg-warning-soft text-warning' : 'bg-primary-soft text-primary';
+  return (
+    <>
+      <div class="mt-2.5 flex items-center gap-2">
+        <h3 class="text-base font-semibold leading-tight text-fg">{t(`offers.category.${card.category}` as UIKey)}</h3>
+        <span class={`rounded-[var(--radius-full)] px-2 py-0.5 text-[11px] font-medium ${kindCls}`}>
+          {t(`offers.kind.${card.kind}` as UIKey)}
+        </span>
+      </div>
+      <MetaRow>
+        {card.quantity && <span class="font-medium text-fg-secondary">{card.quantity}</span>}
+        {card.quantity && card.zone && <Dot />}
+        {card.zone && <span>{card.zone}</span>}
+      </MetaRow>
+    </>
+  );
+}
+
 function CardBody({ card, lang }: { card: AnyCard; lang: Lang }) {
   if (card.module === 'people') return <PersonBody card={card} lang={lang} />;
   if (card.module === 'pets') return <PetBody card={card} lang={lang} />;
-  return <GoodBody card={card} lang={lang} />;
+  if (card.module === 'goods') return <GoodBody card={card} lang={lang} />;
+  return <OfferBody card={card} lang={lang} />;
 }
 
 function CardItem({ card, lang, basePath }: { card: AnyCard; lang: Lang; basePath: string }) {
@@ -150,13 +189,12 @@ function Skeleton() {
   );
 }
 
-const SPECIES: PetSpecies[] = ['dog', 'cat', 'other'];
-
 export default function CardResults({ lang, module, initial, initialFilters }: Props) {
   const t = useTranslations(lang);
   const routes = ROUTES[module]!;
   const [filters, setFilters] = useState<Filters>({
-    q: '', status: '', zone: '', direction: '', species: '', ...initialFilters,
+    q: '', status: '', zone: '', direction: '', species: '', goodType: '', kind: '', category: '',
+    ...initialFilters,
   });
   const [items, setItems] = useState<AnyCard[]>(initial.items);
   const [counts, setCounts] = useState<Record<string, number>>(initial.counts);
@@ -173,11 +211,14 @@ export default function CardResults({ lang, module, initial, initialFilters }: P
       if (f.status) p.set('status', f.status);
       if (f.zone) p.set('zone', f.zone);
       if (f.direction) p.set('direction', f.direction);
-      if (module === 'pets' && f.species) p.set('species', f.species);
+      if (f.species) p.set('species', f.species);
+      if (f.goodType) p.set('goodType', f.goodType);
+      if (f.kind) p.set('kind', f.kind);
+      if (f.category) p.set('category', f.category);
       if (c) p.set('cursor', c);
       return `${routes.api}?${p.toString()}`;
     },
-    [module, routes.api],
+    [routes.api],
   );
 
   const load = useCallback(
@@ -262,18 +303,53 @@ export default function CardResults({ lang, module, initial, initialFilters }: P
         ))}
       </div>
 
-      {module === 'pets' && (
-        <select
-          class="select mt-3"
-          aria-label={t('pets.field.species')}
-          value={filters.species}
-          onChange={(e) => setFilters((f) => ({ ...f, species: (e.target as HTMLSelectElement).value }))}
-        >
-          <option value="">{t('common.all')}</option>
-          {SPECIES.map((s) => (
-            <option key={s} value={s}>{t(`pets.species.${s}` as UIKey)}</option>
-          ))}
-        </select>
+      {(module === 'pets' || module === 'goods' || module === 'offers') && (
+        <div class="mt-3 flex flex-wrap gap-2">
+          {module === 'pets' && (
+            <select
+              class="select max-w-[10rem]"
+              aria-label={t('pets.field.species')}
+              value={filters.species}
+              onChange={(e) => setFilters((f) => ({ ...f, species: (e.target as HTMLSelectElement).value }))}
+            >
+              <option value="">{t('pets.field.species')}: {t('common.all')}</option>
+              {SPECIES.map((s) => (<option key={s} value={s}>{t(`pets.species.${s}` as UIKey)}</option>))}
+            </select>
+          )}
+          {module === 'goods' && (
+            <select
+              class="select max-w-[10rem]"
+              aria-label={t('goods.field.type')}
+              value={filters.goodType}
+              onChange={(e) => setFilters((f) => ({ ...f, goodType: (e.target as HTMLSelectElement).value }))}
+            >
+              <option value="">{t('goods.field.type')}: {t('common.all')}</option>
+              {GOOD_TYPES.map((g) => (<option key={g} value={g}>{t(`goods.type.${g}` as UIKey)}</option>))}
+            </select>
+          )}
+          {module === 'offers' && (
+            <>
+              <select
+                class="select max-w-[9rem]"
+                aria-label={t('offers.field.kind')}
+                value={filters.kind}
+                onChange={(e) => setFilters((f) => ({ ...f, kind: (e.target as HTMLSelectElement).value }))}
+              >
+                <option value="">{t('common.all')}</option>
+                {OFFER_KINDS.map((k) => (<option key={k} value={k}>{t(`offers.kind.${k}` as UIKey)}</option>))}
+              </select>
+              <select
+                class="select max-w-[12rem]"
+                aria-label={t('offers.field.category')}
+                value={filters.category}
+                onChange={(e) => setFilters((f) => ({ ...f, category: (e.target as HTMLSelectElement).value }))}
+              >
+                <option value="">{t('offers.field.category')}: {t('common.all')}</option>
+                {ALL_OFFER_CATEGORIES.map((c) => (<option key={c} value={c}>{t(`offers.category.${c}` as UIKey)}</option>))}
+              </select>
+            </>
+          )}
+        </div>
       )}
 
       <div class="mt-4 space-y-3">

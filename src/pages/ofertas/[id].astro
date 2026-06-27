@@ -1,0 +1,112 @@
+---
+import Layout from '@/components/Layout.astro';
+import Icon from '@/components/Icon.astro';
+import StateBadge from '@/components/StateBadge.astro';
+import RevealContact from '@/components/RevealContact.tsx';
+import { getRepository } from '@/lib/repository';
+import { getStatusDef } from '@/lib/engine/modules';
+import { formatDateTime, timeAgo } from '@/lib/utils/format';
+
+const { lang, t } = Astro.locals;
+const id = Astro.params.id!;
+
+const repo = getRepository();
+const card = await repo.getOffer(id);
+if (!card) Astro.response.status = 404;
+
+const statusDef = card ? getStatusDef('offers', card.status) : undefined;
+// Emparejamiento: coincidencias de la cara opuesta (categoría + zona).
+const matches = card
+  ? await repo.findMatchingOffers({ kind: card.kind, category: card.category, zone: card.zone, excludeId: card.id })
+  : [];
+const title = card ? t(`offers.category.${card.category}` as any) : t('common.error.title');
+---
+
+<Layout title={title}>
+  <a href="/ofertas" class="-ml-1 inline-flex items-center gap-1 text-sm text-fg-tertiary transition-colors hover:text-fg">
+    <Icon name="back" size={16} />
+    {t('offers.list.title')}
+  </a>
+
+  {
+    !card ? (
+      <div class="mt-6 rounded-[var(--radius-md)] border border-border bg-surface p-6 text-center">
+        <p class="text-sm font-semibold text-fg">{t('offers.manage.not_found')}</p>
+      </div>
+    ) : (
+      <article class="mt-3">
+        <div class="flex items-center justify-between gap-3">
+          <StateBadge
+            tone={statusDef?.tone ?? 'neutral'}
+            label={t(`offers.status.${card.status}` as any)}
+            active={statusDef?.active ?? false}
+          />
+          <time class="text-xs text-fg-muted tabular" datetime={card.createdAt}>
+            {t('people.card.reported')} {timeAgo(card.createdAt, lang)}
+          </time>
+        </div>
+
+        <div class="mt-3 flex items-center gap-2">
+          <h1 class="text-2xl font-semibold tracking-tight text-fg">{title}</h1>
+          <span
+            class={`rounded-[var(--radius-full)] px-2.5 py-0.5 text-xs font-medium ${card.kind === 'need' ? 'bg-warning-soft text-warning' : 'bg-primary-soft text-primary'}`}
+          >
+            {t(`offers.kind.${card.kind}` as any)}
+          </span>
+        </div>
+
+        <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-tertiary">
+          {card.quantity && (<><span class="font-medium text-fg-secondary">{card.quantity}</span></>)}
+          {card.quantity && card.zone && <span aria-hidden="true">·</span>}
+          {card.zone && <span>{card.zone}</span>}
+        </div>
+
+        {card.expiresAt && (
+          <p class="mt-3 text-sm text-fg-secondary">
+            <span class="text-fg-muted">{t('offers.expires')}:</span> {formatDateTime(card.expiresAt, lang)}
+          </p>
+        )}
+
+        {card.description && (
+          <p class="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-fg">{card.description}</p>
+        )}
+
+        <div class="mt-5">
+          <RevealContact client:idle lang={lang} endpoint={`/api/ofertas/${card.id}/contact`} />
+        </div>
+
+        {/* Emparejamiento: coincidencias sugeridas */}
+        <section class="mt-8">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-fg-tertiary">
+            {t('offers.detail.matches')}
+          </h2>
+          {matches.length === 0 ? (
+            <p class="mt-2 text-sm text-fg-muted">{t('offers.detail.matches_empty')}</p>
+          ) : (
+            <ul class="mt-2 space-y-2">
+              {matches.map((m) => (
+                <li>
+                  <a
+                    href={`/ofertas/${m.card.id}`}
+                    class="flex items-center justify-between gap-2 rounded-[var(--radius-md)] border border-border bg-surface px-4 py-3 text-sm transition-colors hover:bg-surface-2"
+                  >
+                    <span class="font-medium text-fg">
+                      {t(`offers.kind.${m.card.kind}` as any)} · {t(`offers.category.${m.card.category}` as any)}
+                    </span>
+                    <span class="text-xs text-fg-tertiary">{m.card.zone} →</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <p class="mt-6 text-center text-xs text-fg-muted">
+          <a href={`/ofertas/gestionar?id=${card.id}`} class="underline hover:text-fg-secondary">
+            {t('offers.manage.title')}
+          </a>
+        </p>
+      </article>
+    )
+  }
+</Layout>

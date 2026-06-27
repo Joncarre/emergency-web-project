@@ -9,6 +9,9 @@ import type {
   GoodCard,
   GoodDirection,
   GoodType,
+  OfferCard,
+  OfferCategory,
+  OfferKind,
   PersonCard,
   PersonDirection,
   PetCard,
@@ -173,6 +176,48 @@ export interface SimilarGoodsInput {
   zone: string | null;
 }
 
+/* --- Ofertas / Necesidades --- */
+
+export interface ListOffersParams {
+  status?: string;
+  zone?: string;
+  kind?: OfferKind;
+  category?: OfferCategory;
+  q?: string;
+  cursor?: string | null;
+  limit?: number;
+}
+
+export interface CreateOfferInput {
+  kind: OfferKind;
+  category: OfferCategory;
+  quantity: string | null;
+  expiresAt: string | null;
+  zone: string | null;
+  geo: GeoPoint | null;
+  description: string | null;
+  photoUrl: string | null;
+  contact: ProtectedContact | null;
+}
+
+export interface CreateOfferResult {
+  card: OfferCard;
+  manageToken: string;
+}
+
+/** Entrada para sugerir emparejamientos (la cara opuesta: oferta↔necesidad). */
+export interface MatchOffersInput {
+  kind: OfferKind;
+  category: OfferCategory;
+  zone: string | null;
+  excludeId?: string | null;
+}
+
+export interface OfferMatch {
+  card: OfferCard;
+  score: number;
+}
+
 /* --- Interfaz del repositorio --- */
 
 export interface Repository {
@@ -210,4 +255,14 @@ export interface Repository {
   transitionGood(id: string, to: string, ctx: ActorContext): Promise<GoodCard>;
   resolveActorGood(id: string, ctx: ActorContext): Promise<Actor>;
   revealGoodContact(id: string): Promise<ProtectedContact | null>;
+
+  // Ofertas / Necesidades
+  listOffers(params: ListOffersParams): Promise<CursorPage<OfferCard>>;
+  countOffersByStatus(filters: Pick<ListOffersParams, 'zone' | 'kind' | 'category' | 'q'>): Promise<StatusCounts>;
+  getOffer(id: string): Promise<OfferCard | null>;
+  createOffer(input: CreateOfferInput, ipHash: string | null): Promise<CreateOfferResult>;
+  findMatchingOffers(input: MatchOffersInput, limit?: number): Promise<OfferMatch[]>;
+  transitionOffer(id: string, to: string, ctx: ActorContext): Promise<OfferCard>;
+  resolveActorOffer(id: string, ctx: ActorContext): Promise<Actor>;
+  revealOfferContact(id: string): Promise<ProtectedContact | null>;
 }

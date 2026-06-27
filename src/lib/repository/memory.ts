@@ -8,5 +8,11 @@ import type { Repository } from './types';
 import { peopleRepo } from './people-repo';
 import { petsRepo } from './pets-repo';
 import { goodsRepo } from './goods-repo';
+import { offersRepo } from './offers-repo';
 
-export const memoryRepository: Repository = { ...peopleRepo, ...petsRepo, ...goodsRepo };
+export const memoryRepository: Repository = {
+  ...peopleRepo,
+  ...petsRepo,
+  ...goodsRepo,
+  ...offersRepo,
+};

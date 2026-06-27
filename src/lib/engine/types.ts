@@ -92,12 +92,46 @@ export interface GoodCard extends CardBase {
   direction: GoodDirection;
 }
 
+/* ---------------------------------------------------------------------------
+   Módulo Ofertas/Necesidades (especialización: emparejamiento por categoría+zona)
+   --------------------------------------------------------------------------- */
+
+export type OfferKind = 'offer' | 'need';
+export type OfferStatus = 'active' | 'fulfilled' | 'expired';
+
+/** Categorías configurables por despliegue (aquí, el conjunto por defecto). */
+export const ALL_OFFER_CATEGORIES = [
+  'shelter',
+  'water',
+  'food',
+  'medicine',
+  'hygiene',
+  'baby',
+  'blankets',
+  'power',
+  'volunteer',
+  'tools',
+  'transport',
+  'blood',
+  'other',
+] as const;
+export type OfferCategory = (typeof ALL_OFFER_CATEGORIES)[number];
+
+export interface OfferCard extends CardBase {
+  module: 'offers';
+  status: OfferStatus;
+  kind: OfferKind;
+  category: OfferCategory;
+  quantity: string | null;
+  expiresAt: string | null;
+}
+
 /**
  * Unión de todas las tarjetas conocidas por el motor. Cada módulo nuevo se
  * incorpora aquí sin tocar el núcleo (listado, filtros, tokens, soft-delete,
  * máquina de estados y audit son genéricos).
  */
-export type AnyCard = PersonCard | PetCard | GoodCard;
+export type AnyCard = PersonCard | PetCard | GoodCard | OfferCard;
 
 /** Registro interno persistido: tarjeta + datos sensibles fuera del payload. */
 export interface StoredCard<T extends CardBase = AnyCard> {

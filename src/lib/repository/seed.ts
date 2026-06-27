@@ -8,6 +8,10 @@ import type {
   GoodDirection,
   GoodStatus,
   GoodType,
+  OfferCard,
+  OfferCategory,
+  OfferKind,
+  OfferStatus,
   PersonCard,
   PersonStatus,
   PetCard,
@@ -17,6 +21,7 @@ import type {
   ProtectedContact,
   StoredCard,
 } from '@/lib/engine/types';
+import { ALL_OFFER_CATEGORIES } from '@/lib/engine/types';
 import { hashToken, generateManageToken } from '@/lib/engine/tokens';
 
 const FIRST = ['María', 'Lucía', 'Carmen', 'Ana', 'Sofía', 'Marta', 'José', 'Antonio', 'Manuel', 'Carlos', 'David', 'Javier', 'Elena', 'Pablo', 'Rosa', 'Miguel', 'Laura', 'Andrés'];
@@ -131,6 +136,59 @@ export function seedStoredGoods(count = 18): StoredCard<GoodCard>[] {
     const contact: ProtectedContact = {
       method: rand() > 0.5 ? 'phone' : 'email',
       value: rand() > 0.5 ? '+34 600 222 333' : 'bienes@example.org',
+    };
+
+    out.push({ card, contact, manageTokenHash: hashToken(generateManageToken()) });
+  }
+  return out;
+}
+
+const OFFER_KINDS: OfferKind[] = ['offer', 'need'];
+const OFFER_STATUSES: OfferStatus[] = ['active', 'active', 'active', 'fulfilled', 'expired'];
+const OFFER_QTY = ['', '10 uds.', '2 plazas', '50 L', 'según necesidad', '3 cajas'];
+const OFFER_NOTES = [
+  'Disponible toda la semana.',
+  'Recogida en el punto de reparto.',
+  'Familia con dos niños pequeños.',
+  'Puedo desplazarme con furgoneta.',
+  'Urgente, para esta noche.',
+];
+
+export function seedStoredOffers(count = 22): StoredCard<OfferCard>[] {
+  const rand = rng(123);
+  const out: StoredCard<OfferCard>[] = [];
+  const now = Date.now();
+
+  for (let i = 0; i < count; i++) {
+    const pick = <T>(arr: T[]) => arr[Math.floor(rand() * arr.length)]!;
+    // Alternar cara para garantizar pares oferta/necesidad emparejables.
+    const kind: OfferKind = OFFER_KINDS[i % 2]!;
+    const category: OfferCategory = ALL_OFFER_CATEGORIES[i % ALL_OFFER_CATEGORIES.length]!;
+    const status = OFFER_STATUSES[i % OFFER_STATUSES.length]!;
+    const createdAt = new Date(now - Math.floor(rand() * 4 * 86_400_000)).toISOString();
+    const expiresAt = rand() > 0.6 ? new Date(now + (1 + Math.floor(rand() * 5)) * 86_400_000).toISOString() : null;
+    const qty = pick(OFFER_QTY);
+
+    const card: OfferCard = {
+      id: `offer-${(i + 1).toString().padStart(3, '0')}`,
+      module: 'offers',
+      status,
+      zone: pick(ZONES),
+      geo: null,
+      description: pick(OFFER_NOTES),
+      photoUrl: null,
+      createdAt,
+      updatedAt: createdAt,
+      deletedAt: null,
+      kind,
+      category,
+      quantity: qty || null,
+      expiresAt,
+    };
+
+    const contact: ProtectedContact = {
+      method: rand() > 0.5 ? 'phone' : 'email',
+      value: rand() > 0.5 ? '+34 600 333 444' : 'ayuda@example.org',
     };
 
     out.push({ card, contact, manageTokenHash: hashToken(generateManageToken()) });
