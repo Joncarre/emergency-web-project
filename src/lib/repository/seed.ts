@@ -3,7 +3,16 @@
  * produce las mismas fichas, útil para desarrollo y capturas. La prueba de carga
  * a gran escala (100k–200k) es otra cosa y vive en la Fase 6.
  */
-import type { PersonCard, PersonStatus, ProtectedContact, StoredCard } from '@/lib/engine/types';
+import type {
+  PersonCard,
+  PersonStatus,
+  PetCard,
+  PetDirection,
+  PetSpecies,
+  PetStatus,
+  ProtectedContact,
+  StoredCard,
+} from '@/lib/engine/types';
 import { hashToken, generateManageToken } from '@/lib/engine/tokens';
 
 const FIRST = ['María', 'Lucía', 'Carmen', 'Ana', 'Sofía', 'Marta', 'José', 'Antonio', 'Manuel', 'Carlos', 'David', 'Javier', 'Elena', 'Pablo', 'Rosa', 'Miguel', 'Laura', 'Andrés'];
@@ -64,6 +73,62 @@ export function seedStoredPeople(count = 36): StoredCard<PersonCard>[] {
     const contact: ProtectedContact = {
       method: rand() > 0.5 ? 'phone' : 'email',
       value: rand() > 0.5 ? '+34 600 000 000' : 'contacto@example.org',
+    };
+
+    out.push({ card, contact, manageTokenHash: hashToken(generateManageToken()) });
+  }
+  return out;
+}
+
+const PET_SPECIES: PetSpecies[] = ['dog', 'cat', 'other'];
+const PET_NAMES = ['Toby', 'Luna', 'Max', 'Nala', 'Rocky', 'Kira', 'Coco', 'Bruno', 'Mía', 'Thor', 'Lola', 'Simba'];
+const BREEDS_DOG = ['Mestizo', 'Labrador', 'Pastor alemán', 'Galgo', 'Bodeguero', 'Border collie'];
+const BREEDS_CAT = ['Común europeo', 'Siamés', 'Atigrado', 'Persa'];
+const PET_NOTES = [
+  'Collar rojo, muy asustado.',
+  'Sin collar, responde a su nombre.',
+  'Cojea de una pata trasera.',
+  'Microchip puesto en la clínica del barrio.',
+  'Visto cerca del parque inundado.',
+];
+const PET_STATUSES: PetStatus[] = ['lost', 'lost', 'found', 'found', 'reunited'];
+
+export function seedStoredPets(count = 24): StoredCard<PetCard>[] {
+  const rand = rng(7);
+  const out: StoredCard<PetCard>[] = [];
+  const now = Date.now();
+
+  for (let i = 0; i < count; i++) {
+    const pick = <T>(arr: T[]) => arr[Math.floor(rand() * arr.length)]!;
+    const species = pick(PET_SPECIES);
+    const status = PET_STATUSES[i % PET_STATUSES.length]!;
+    const direction: PetDirection = status === 'found' ? 'found' : status === 'reunited' ? (rand() > 0.5 ? 'lost' : 'found') : 'lost';
+    const createdAt = new Date(now - Math.floor(rand() * 5 * 86_400_000)).toISOString();
+    // ~40% con chip; uno fijo y conocido para demostrar el emparejamiento.
+    const hasChip = rand() > 0.6;
+    const chipId = i === 0 ? '985112003456789' : hasChip ? `9851120${(10000000 + i * 137).toString()}` : null;
+
+    const card: PetCard = {
+      id: `pet-${(i + 1).toString().padStart(3, '0')}`,
+      module: 'pets',
+      status,
+      zone: pick(ZONES),
+      geo: null,
+      description: pick(PET_NOTES),
+      photoUrl: null,
+      createdAt,
+      updatedAt: createdAt,
+      deletedAt: null,
+      species,
+      name: rand() > 0.2 ? pick(PET_NAMES) : null,
+      chipId,
+      breed: species === 'dog' ? pick(BREEDS_DOG) : species === 'cat' ? pick(BREEDS_CAT) : null,
+      direction,
+    };
+
+    const contact: ProtectedContact = {
+      method: rand() > 0.5 ? 'phone' : 'email',
+      value: rand() > 0.5 ? '+34 600 111 222' : 'mascotas@example.org',
     };
 
     out.push({ card, contact, manageTokenHash: hashToken(generateManageToken()) });

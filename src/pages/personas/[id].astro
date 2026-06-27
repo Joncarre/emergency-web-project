@@ -101,7 +101,7 @@ const statusDef = card ? getStatusDef('people', card.status) : undefined;
         )}
 
         <div class="mt-5">
-          <RevealContact client:idle lang={lang} id={card.id} />
+          <RevealContact client:idle lang={lang} endpoint={`/api/personas/${card.id}/contact`} />
         </div>
 
         {/* Avistamiento — cualquiera puede aportar una pista (form nativo, sin JS) */}

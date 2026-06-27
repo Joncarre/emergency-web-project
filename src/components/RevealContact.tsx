@@ -7,14 +7,15 @@ import { useTranslations, type Lang } from '@/i18n/index';
 
 interface Props {
   lang: Lang;
-  id: string;
+  /** Endpoint POST que devuelve { ok, contact }. Específico del módulo. */
+  endpoint: string;
 }
 interface Contact {
   method: 'phone' | 'email' | 'other';
   value: string;
 }
 
-export default function RevealContact({ lang, id }: Props) {
+export default function RevealContact({ lang, endpoint }: Props) {
   const t = useTranslations(lang);
   const [contact, setContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export default function RevealContact({ lang, id }: Props) {
     setLoading(true);
     setError(false);
     try {
-      const res = await fetch(`/api/personas/${id}/contact`, { method: 'POST' });
+      const res = await fetch(endpoint, { method: 'POST' });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error();
       setContact(data.contact);

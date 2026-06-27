@@ -56,12 +56,31 @@ export interface PersonCard extends CardBase {
   direction: PersonDirection;
 }
 
+/* ---------------------------------------------------------------------------
+   Módulo Mascotas (especialización: emparejamiento por chip / ID natural)
+   --------------------------------------------------------------------------- */
+
+export type PetDirection = 'lost' | 'found';
+export type PetStatus = 'lost' | 'found' | 'reunited';
+export type PetSpecies = 'dog' | 'cat' | 'other';
+
+export interface PetCard extends CardBase {
+  module: 'pets';
+  status: PetStatus;
+  species: PetSpecies;
+  name: string | null;
+  /** Nº de chip — ID natural ÚNICO cuando se aporta (dispara emparejamiento). */
+  chipId: string | null;
+  breed: string | null;
+  direction: PetDirection;
+}
+
 /**
- * Unión de todas las tarjetas conocidas por el motor. Hoy solo Personas;
- * Mascotas/Bienes/Ofertas/Mapa se incorporan como nuevos miembros sin tocar
- * el resto del motor (listado, filtros, tokens, soft-delete son genéricos).
+ * Unión de todas las tarjetas conocidas por el motor. Cada módulo nuevo se
+ * incorpora aquí sin tocar el núcleo (listado, filtros, tokens, soft-delete,
+ * máquina de estados y audit son genéricos).
  */
-export type AnyCard = PersonCard;
+export type AnyCard = PersonCard | PetCard;
 
 /** Registro interno persistido: tarjeta + datos sensibles fuera del payload. */
 export interface StoredCard<T extends CardBase = AnyCard> {

@@ -97,14 +97,20 @@ const pets: ModuleDef = {
   id: 'pets',
   labelKey: 'module.pets',
   icon: 'paw',
+  // El estado inicial coincide con la dirección (lost/found); lo fija el repo.
   initialStatus: 'lost',
   statuses: [
     { id: 'lost', tone: 'danger', active: true },
     { id: 'found', tone: 'warning', active: true },
     { id: 'reunited', tone: 'success', active: false },
   ],
-  transitions: [],
-  implemented: false,
+  transitions: [
+    { from: 'lost', to: 'reunited', by: ['owner', 'moderator'], actionKey: 'pets.action.mark_reunited' },
+    { from: 'found', to: 'reunited', by: ['owner', 'moderator'], actionKey: 'pets.action.mark_reunited' },
+    { from: 'reunited', to: 'lost', by: ['owner', 'moderator'], actionKey: 'pets.action.reopen_lost' },
+    { from: 'reunited', to: 'found', by: ['owner', 'moderator'], actionKey: 'pets.action.reopen_found' },
+  ],
+  implemented: true,
 };
 
 const goods: ModuleDef = {

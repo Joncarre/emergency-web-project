@@ -1,0 +1,22 @@
+---
+import Layout from '@/components/Layout.astro';
+import Icon from '@/components/Icon.astro';
+import PetCreateForm from '@/components/PetCreateForm.tsx';
+import { deployment } from '@/config/deployment';
+
+const { lang, t } = Astro.locals;
+---
+
+<Layout title={t('pets.new.title')} description={t('pets.new.intro')}>
+  <a href="/mascotas" class="-ml-1 inline-flex items-center gap-1 text-sm text-fg-tertiary transition-colors hover:text-fg">
+    <Icon name="back" size={16} />
+    {t('pets.list.title')}
+  </a>
+
+  <h1 class="mt-2 text-xl font-semibold tracking-tight text-fg">{t('pets.new.title')}</h1>
+  <p class="mt-1 text-sm text-fg-tertiary">{t('pets.new.intro')}</p>
+
+  <div class="mt-5">
+    <PetCreateForm client:load lang={lang} defaultZone={deployment.defaultZone} />
+  </div>
+</Layout>
