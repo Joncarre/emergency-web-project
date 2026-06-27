@@ -1,0 +1,61 @@
+---
+import Layout from '@/components/Layout.astro';
+import Icon from '@/components/Icon.astro';
+import Button from '@/components/Button.astro';
+import CardResults from '@/components/CardResults.tsx';
+import { getRepository } from '@/lib/repository';
+import type { GoodDirection, GoodType } from '@/lib/engine/types';
+
+const { lang, t } = Astro.locals;
+const sp = Astro.url.searchParams;
+const dir = sp.get('direction');
+const gt = sp.get('goodType');
+
+const filters = {
+  q: sp.get('q') ?? '',
+  status: sp.get('status') ?? '',
+  zone: sp.get('zone') ?? '',
+  direction: dir === 'found' || dir === 'lost' ? dir : '',
+  goodType: gt === 'vehicle' || gt === 'machinery' || gt === 'other' ? gt : '',
+};
+
+const repo = getRepository();
+const directionFilter = (filters.direction || undefined) as GoodDirection | undefined;
+const typeFilter = (filters.goodType || undefined) as GoodType | undefined;
+const [page, counts] = await Promise.all([
+  repo.listGoods({
+    q: filters.q || undefined,
+    status: filters.status || undefined,
+    zone: filters.zone || undefined,
+    direction: directionFilter,
+    goodType: typeFilter,
+  }),
+  repo.countGoodsByStatus({
+    q: filters.q || undefined,
+    zone: filters.zone || undefined,
+    direction: directionFilter,
+    goodType: typeFilter,
+  }),
+]);
+
+const initial = { items: page.items, nextCursor: page.nextCursor, counts };
+---
+
+<Layout title={t('module.goods')} description={t('module.goods.desc')}>
+  <a href="/" class="-ml-1 inline-flex items-center gap-1 text-sm text-fg-tertiary transition-colors hover:text-fg">
+    <Icon name="back" size={16} />
+    {t('nav.home')}
+  </a>
+
+  <div class="mt-2 flex items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold tracking-tight text-fg">{t('goods.list.title')}</h1>
+    <Button href="/bienes/nueva" size="sm">
+      <Icon name="plus" size={16} />
+      {t('goods.list.new')}
+    </Button>
+  </div>
+
+  <div class="mt-4">
+    <CardResults client:load lang={lang} module="goods" initial={initial} initialFilters={filters} />
+  </div>
+</Layout>

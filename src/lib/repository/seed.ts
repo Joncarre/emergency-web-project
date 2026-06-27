@@ -4,6 +4,10 @@
  * a gran escala (100k–200k) es otra cosa y vive en la Fase 6.
  */
 import type {
+  GoodCard,
+  GoodDirection,
+  GoodStatus,
+  GoodType,
   PersonCard,
   PersonStatus,
   PetCard,
@@ -73,6 +77,60 @@ export function seedStoredPeople(count = 36): StoredCard<PersonCard>[] {
     const contact: ProtectedContact = {
       method: rand() > 0.5 ? 'phone' : 'email',
       value: rand() > 0.5 ? '+34 600 000 000' : 'contacto@example.org',
+    };
+
+    out.push({ card, contact, manageTokenHash: hashToken(generateManageToken()) });
+  }
+  return out;
+}
+
+const GOOD_TYPES: GoodType[] = ['vehicle', 'machinery', 'other'];
+const GOOD_STATUSES: GoodStatus[] = ['found', 'found', 'claimed', 'returned'];
+const GOOD_NOTES = [
+  'Arrastrado por la riada, con barro.',
+  'Aparcado, sin daños visibles.',
+  'Volcado junto al cauce.',
+  'Recogido en el punto de reunión.',
+];
+
+export function seedStoredGoods(count = 18): StoredCard<GoodCard>[] {
+  const rand = rng(99);
+  const out: StoredCard<GoodCard>[] = [];
+  const now = Date.now();
+
+  for (let i = 0; i < count; i++) {
+    const pick = <T>(arr: T[]) => arr[Math.floor(rand() * arr.length)]!;
+    const goodType = pick(GOOD_TYPES);
+    const status = GOOD_STATUSES[i % GOOD_STATUSES.length]!;
+    const direction: GoodDirection = rand() > 0.5 ? 'found' : 'lost';
+    const createdAt = new Date(now - Math.floor(rand() * 5 * 86_400_000)).toISOString();
+    // Uno fijo y conocido para demostrar el emparejamiento por ID natural.
+    const naturalId =
+      i === 0
+        ? '1234ABC'
+        : goodType === 'vehicle'
+          ? `${1000 + i * 7}${String.fromCharCode(66 + (i % 20))}${String.fromCharCode(67 + (i % 19))}${String.fromCharCode(68 + (i % 18))}`
+          : `SN-${(100000 + i * 911).toString()}`;
+
+    const card: GoodCard = {
+      id: `good-${(i + 1).toString().padStart(3, '0')}`,
+      module: 'goods',
+      status,
+      zone: pick(ZONES),
+      geo: null,
+      description: pick(GOOD_NOTES),
+      photoUrl: null,
+      createdAt,
+      updatedAt: createdAt,
+      deletedAt: null,
+      goodType,
+      naturalId,
+      direction,
+    };
+
+    const contact: ProtectedContact = {
+      method: rand() > 0.5 ? 'phone' : 'email',
+      value: rand() > 0.5 ? '+34 600 222 333' : 'bienes@example.org',
     };
 
     out.push({ card, contact, manageTokenHash: hashToken(generateManageToken()) });

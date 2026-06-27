@@ -75,12 +75,29 @@ export interface PetCard extends CardBase {
   direction: PetDirection;
 }
 
+/* ---------------------------------------------------------------------------
+   Módulo Bienes (especialización: ID natural ESTRICTAMENTE único)
+   --------------------------------------------------------------------------- */
+
+export type GoodDirection = 'found' | 'lost';
+export type GoodStatus = 'found' | 'claimed' | 'returned';
+export type GoodType = 'vehicle' | 'machinery' | 'other';
+
+export interface GoodCard extends CardBase {
+  module: 'goods';
+  status: GoodStatus;
+  goodType: GoodType;
+  /** Matrícula / nº de serie — ID natural ÚNICO y obligatorio. */
+  naturalId: string;
+  direction: GoodDirection;
+}
+
 /**
  * Unión de todas las tarjetas conocidas por el motor. Cada módulo nuevo se
  * incorpora aquí sin tocar el núcleo (listado, filtros, tokens, soft-delete,
  * máquina de estados y audit son genéricos).
  */
-export type AnyCard = PersonCard | PetCard;
+export type AnyCard = PersonCard | PetCard | GoodCard;
 
 /** Registro interno persistido: tarjeta + datos sensibles fuera del payload. */
 export interface StoredCard<T extends CardBase = AnyCard> {

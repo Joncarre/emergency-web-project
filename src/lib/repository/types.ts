@@ -6,6 +6,9 @@
 import type {
   Actor,
   GeoPoint,
+  GoodCard,
+  GoodDirection,
+  GoodType,
   PersonCard,
   PersonDirection,
   PetCard,
@@ -129,6 +132,47 @@ export interface SimilarPetsInput {
   chipId: string | null;
 }
 
+/* --- Bienes --- */
+
+export interface ListGoodsParams {
+  status?: string;
+  zone?: string;
+  direction?: GoodDirection;
+  goodType?: GoodType;
+  q?: string;
+  cursor?: string | null;
+  limit?: number;
+}
+
+export interface CreateGoodInput {
+  goodType: GoodType;
+  naturalId: string;
+  direction: GoodDirection;
+  zone: string | null;
+  geo: GeoPoint | null;
+  description: string | null;
+  photoUrl: string | null;
+  contact: ProtectedContact | null;
+}
+
+/** Si el ID natural ya existe (UNIQUE), no se duplica: se devuelve `matched`. */
+export interface CreateGoodResult {
+  created?: { card: GoodCard; manageToken: string };
+  matched?: GoodCard;
+}
+
+export interface GoodSimilarMatch {
+  card: GoodCard;
+  score: number;
+  reason: 'natural_id' | 'similar';
+}
+
+export interface SimilarGoodsInput {
+  naturalId: string | null;
+  goodType: GoodType | null;
+  zone: string | null;
+}
+
 /* --- Interfaz del repositorio --- */
 
 export interface Repository {
@@ -156,4 +200,14 @@ export interface Repository {
   transitionPet(id: string, to: string, ctx: ActorContext): Promise<PetCard>;
   resolveActorPet(id: string, ctx: ActorContext): Promise<Actor>;
   revealPetContact(id: string): Promise<ProtectedContact | null>;
+
+  // Bienes
+  listGoods(params: ListGoodsParams): Promise<CursorPage<GoodCard>>;
+  countGoodsByStatus(filters: Pick<ListGoodsParams, 'zone' | 'direction' | 'goodType' | 'q'>): Promise<StatusCounts>;
+  getGood(id: string): Promise<GoodCard | null>;
+  createGood(input: CreateGoodInput, ipHash: string | null): Promise<CreateGoodResult>;
+  findSimilarGoods(input: SimilarGoodsInput, limit?: number): Promise<GoodSimilarMatch[]>;
+  transitionGood(id: string, to: string, ctx: ActorContext): Promise<GoodCard>;
+  resolveActorGood(id: string, ctx: ActorContext): Promise<Actor>;
+  revealGoodContact(id: string): Promise<ProtectedContact | null>;
 }

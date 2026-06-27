@@ -7,5 +7,6 @@
 import type { Repository } from './types';
 import { peopleRepo } from './people-repo';
 import { petsRepo } from './pets-repo';
+import { goodsRepo } from './goods-repo';
 
-export const memoryRepository: Repository = { ...peopleRepo, ...petsRepo };
+export const memoryRepository: Repository = { ...peopleRepo, ...petsRepo, ...goodsRepo };

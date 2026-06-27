@@ -8,7 +8,11 @@ const { t } = Astro.locals;
 
 // Rutas de módulos implementados. Los no implementados se muestran como
 // "próximamente" (siguen declarados para reflejar el alcance del despliegue).
-const ROUTES: Partial<Record<string, string>> = { people: '/personas', pets: '/mascotas' };
+const ROUTES: Partial<Record<string, string>> = {
+  people: '/personas',
+  pets: '/mascotas',
+  goods: '/bienes',
+};
 
 const modules = deployment.enabledModules.map((id) => {
   const def = getModule(id);

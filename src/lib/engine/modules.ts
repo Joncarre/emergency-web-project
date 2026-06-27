@@ -117,14 +117,22 @@ const goods: ModuleDef = {
   id: 'goods',
   labelKey: 'module.goods',
   icon: 'box',
+  // Flujo "encontrar y devolver": el estado inicial es 'found' (la ficha entra
+  // en el sistema, recuperación pendiente). La dirección found/lost describe
+  // quién la registró y habilita el emparejamiento por ID natural.
   initialStatus: 'found',
   statuses: [
     { id: 'found', tone: 'info', active: true },
     { id: 'claimed', tone: 'warning', active: true },
     { id: 'returned', tone: 'success', active: false },
   ],
-  transitions: [],
-  implemented: false,
+  transitions: [
+    { from: 'found', to: 'claimed', by: ['owner', 'moderator'], actionKey: 'goods.action.mark_claimed' },
+    { from: 'claimed', to: 'returned', by: ['owner', 'moderator'], actionKey: 'goods.action.mark_returned' },
+    { from: 'claimed', to: 'found', by: ['owner', 'moderator'], actionKey: 'goods.action.unclaim' },
+    { from: 'returned', to: 'found', by: ['owner', 'moderator'], actionKey: 'goods.action.reopen' },
+  ],
+  implemented: true,
 };
 
 const offers: ModuleDef = {

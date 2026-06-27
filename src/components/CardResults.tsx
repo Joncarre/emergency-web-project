@@ -6,7 +6,7 @@
  */
 import type { ComponentChildren } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import type { AnyCard, ModuleId, PersonCard, PetCard, PetSpecies } from '@/lib/engine/types';
+import type { AnyCard, GoodCard, ModuleId, PersonCard, PetCard, PetSpecies } from '@/lib/engine/types';
 import { getModule, getStatusDef, type StatusTone } from '@/lib/engine/modules';
 import { useTranslations, type Lang, type UIKey } from '@/i18n/index';
 import { timeAgo } from '@/lib/utils/format';
@@ -33,6 +33,7 @@ interface Props {
 const ROUTES: Partial<Record<ModuleId, { detail: string; api: string }>> = {
   people: { detail: '/personas', api: '/api/personas' },
   pets: { detail: '/mascotas', api: '/api/mascotas' },
+  goods: { detail: '/bienes', api: '/api/bienes' },
 };
 
 const TONE_CLASSES: Record<StatusTone, string> = {
@@ -100,6 +101,26 @@ function PetBody({ card, lang }: { card: PetCard; lang: Lang }) {
   );
 }
 
+function GoodBody({ card, lang }: { card: GoodCard; lang: Lang }) {
+  const t = useTranslations(lang);
+  return (
+    <>
+      <h3 class="mt-2.5 font-mono text-base font-semibold leading-tight text-fg">{card.naturalId}</h3>
+      <MetaRow>
+        <span class="font-medium text-fg-secondary">{t(`goods.direction.${card.direction}` as UIKey)}</span>
+        <Dot /><span>{t(`goods.type.${card.goodType}` as UIKey)}</span>
+        {card.zone && (<><Dot /><span>{card.zone}</span></>)}
+      </MetaRow>
+    </>
+  );
+}
+
+function CardBody({ card, lang }: { card: AnyCard; lang: Lang }) {
+  if (card.module === 'people') return <PersonBody card={card} lang={lang} />;
+  if (card.module === 'pets') return <PetBody card={card} lang={lang} />;
+  return <GoodBody card={card} lang={lang} />;
+}
+
 function CardItem({ card, lang, basePath }: { card: AnyCard; lang: Lang; basePath: string }) {
   const lng = lang;
   return (
@@ -113,7 +134,7 @@ function CardItem({ card, lang, basePath }: { card: AnyCard; lang: Lang; basePat
           {timeAgo(card.createdAt, lng)}
         </time>
       </div>
-      {card.module === 'people' ? <PersonBody card={card} lang={lng} /> : <PetBody card={card} lang={lng} />}
+      <CardBody card={card} lang={lng} />
       {card.description && <p class="mt-2 line-clamp-2 text-sm text-fg-tertiary">{card.description}</p>}
     </a>
   );
