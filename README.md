@@ -28,8 +28,9 @@ Fundamentos + **módulo Personas de extremo a extremo** (la referencia del motor
 | **Personas**: alta, listado, búsqueda, filtros, scroll infinito | ✅ |
 | **Personas**: gestión por token, avistamientos, anti-duplicados | ✅ |
 | Anti-abuso: rate-limit + validación/saneamiento (zod) | ✅ |
-| Persistencia Postgres + PostGIS | ⏳ Fase 2 (esquema en [`db/schema.sql`](./db/schema.sql)) |
-| Mascotas · Bienes · Ofertas/Necesidades · Mapa | ⏳ Fase 4 |
+| **Mascotas · Bienes · Ofertas/Necesidades** (sobre el motor) | ✅ |
+| **Persistencia Postgres + PostGIS** (misma interfaz Repository) | ✅ (build); ver "Modo Postgres" |
+| Mapa de estado/peligro | ⏳ (geo: requiere PostGIS, siguiente paso) |
 | CAPTCHA, subida de imágenes (EXIF strip), moderación | ⏳ Fase 5/7 |
 
 > **Modo demo:** sin `DATABASE_URL`, la app usa un repositorio **en memoria** con
@@ -55,6 +56,43 @@ npm run preview
 
 Configuración opcional: copia `.env.example` a `.env` y ajusta. Sin `.env` la app
 arranca en modo demo con valores por defecto.
+
+---
+
+## Modo Postgres (Fase 2)
+
+El repositorio Postgres implementa la **misma interfaz** que el de memoria; se
+activa en cuanto defines `DATABASE_URL` (no hay que tocar páginas ni lógica).
+
+```bash
+# 1) Levanta Postgres + PostGIS (incluye pg_trgm y unaccent)
+docker compose up -d
+
+# 2) Configura la conexión en .env
+echo 'DATABASE_URL="postgresql://relief:relief@localhost:5432/rapid_relief"' >> .env
+
+# 3) Aplica el esquema y (opcional) siembra datos de ejemplo
+npm run db:migrate
+npm run db:seed
+
+# 4) Arranca: ahora la app usa Postgres en vez de memoria
+npm run dev
+```
+
+Detalles de implementación:
+
+- **Motor SQL común** en [`src/lib/repository/postgres/`](./src/lib/repository/postgres/):
+  un `PgCardStore` genérico (paginación por cursor/keyset, filtros y búsqueda
+  server-side con `unaccent`, conteos, máquina de estados, tokens, soft-delete,
+  avistamientos, contacto y audit) + una capa fina por módulo.
+- **Anti-duplicados/emparejamiento en BD**: Personas usa `pg_trgm`
+  (`similarity` + `unaccent`); Mascotas/Bienes por ID natural (chip / matrícula,
+  normalizado); Ofertas por categoría + zona.
+- **Consultas siempre parametrizadas** (sin interpolar valores) y altas en
+  **transacción** (cards + tabla de módulo + contacto + audit).
+
+> Nota: el módulo **Mapa** (geolocalización con PostGIS, carga por viewport y
+> clustering) es el siguiente paso una vez que la BD real está en marcha.
 
 ---
 

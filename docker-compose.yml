@@ -1,0 +1,24 @@
+# Postgres + PostGIS para desarrollo local (Fase 2).
+#   docker compose up -d
+#   DATABASE_URL="postgresql://relief:relief@localhost:5432/rapid_relief"
+# La imagen PostGIS incluye los contrib pg_trgm y unaccent que usa el esquema.
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: rapid_relief_db
+    environment:
+      POSTGRES_USER: relief
+      POSTGRES_PASSWORD: relief
+      POSTGRES_DB: rapid_relief
+    ports:
+      - '5432:5432'
+    volumes:
+      - rr_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U relief -d rapid_relief']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  rr_pgdata:

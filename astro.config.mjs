@@ -14,6 +14,8 @@ export default defineConfig({
   integrations: [preact()],
   vite: {
     plugins: [tailwindcss()],
+    // `pg` es una dependencia de servidor (Node); no la empaquetes en el bundle.
+    ssr: { external: ['pg'] },
   },
   // i18n se resuelve en src/middleware.ts vía cookie/Accept-Language para
   // mantener un único árbol de rutas y una preferencia de idioma persistente.

@@ -1,23 +1,20 @@
 /**
  * Punto único de acceso al repositorio. Selecciona la implementación según el
- * entorno: en memoria (demo) si no hay `DATABASE_URL`; Postgres en Fase 2.
+ * entorno: Postgres si hay `DATABASE_URL`; en memoria (demo) si no.
  *
- * El resto de la app SIEMPRE importa `getRepository()` y nunca una impl. concreta.
+ * El resto de la app SIEMPRE importa `getRepository()` y nunca una impl. concreta,
+ * así que cambiar de memoria a Postgres no toca páginas ni lógica de negocio.
  */
 import type { Repository } from './types';
 import { memoryRepository } from './memory';
+import { postgresRepository } from './postgres';
 import { isDemoMode } from '@/config/deployment';
 
 let instance: Repository | null = null;
 
 export function getRepository(): Repository {
-  if (instance) return instance;
-  if (isDemoMode) {
-    instance = memoryRepository;
-  } else {
-    // Fase 2: const { postgresRepository } = await import('./postgres');
-    // Mientras no exista la impl. Postgres, caemos a memoria de forma segura.
-    instance = memoryRepository;
+  if (!instance) {
+    instance = isDemoMode ? memoryRepository : postgresRepository;
   }
   return instance;
 }
