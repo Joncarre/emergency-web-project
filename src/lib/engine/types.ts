@@ -126,12 +126,32 @@ export interface OfferCard extends CardBase {
   expiresAt: string | null;
 }
 
+/* ---------------------------------------------------------------------------
+   Módulo Mapa de Estado/Peligro (especialización: reportes GEOLOCALIZADOS)
+   --------------------------------------------------------------------------- */
+
+export type MapReportStatus = 'active' | 'expired';
+
+/** Tipos de reporte (configurables por despliegue; conjunto por defecto). */
+export const ALL_MAP_REPORT_TYPES = ['damage', 'service', 'help_point', 'safe'] as const;
+export type MapReportType = (typeof ALL_MAP_REPORT_TYPES)[number];
+
+export interface MapReportCard extends CardBase {
+  module: 'map';
+  status: MapReportStatus;
+  reportType: MapReportType;
+  /** A diferencia del resto de módulos, la geolocalización es OBLIGATORIA. */
+  geo: GeoPoint;
+  /** Caducidad para no acumular información desactualizada. */
+  expiresAt: string | null;
+}
+
 /**
  * Unión de todas las tarjetas conocidas por el motor. Cada módulo nuevo se
  * incorpora aquí sin tocar el núcleo (listado, filtros, tokens, soft-delete,
  * máquina de estados y audit son genéricos).
  */
-export type AnyCard = PersonCard | PetCard | GoodCard | OfferCard;
+export type AnyCard = PersonCard | PetCard | GoodCard | OfferCard | MapReportCard;
 
 /** Registro interno persistido: tarjeta + datos sensibles fuera del payload. */
 export interface StoredCard<T extends CardBase = AnyCard> {

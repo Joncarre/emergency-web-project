@@ -1,0 +1,40 @@
+---
+import Layout from '@/components/Layout.astro';
+import Icon from '@/components/Icon.astro';
+import MapPanel from '@/components/MapPanel.tsx';
+import { DEMO_MAP_CENTER } from '@/lib/repository/seed';
+
+const { lang, t } = Astro.locals;
+
+// Centro inicial del mapa. En un despliegue real vendrá de la configuración
+// del evento (región afectada); en demo, el centro de los datos sintéticos.
+const center = DEMO_MAP_CENTER;
+---
+
+<Layout title={t('map.title')} description={t('module.map.desc')}>
+  <a href="/" class="-ml-1 inline-flex items-center gap-1 text-sm text-fg-tertiary transition-colors hover:text-fg">
+    <Icon name="back" size={16} />
+    {t('nav.home')}
+  </a>
+
+  <h1 class="mt-2 text-xl font-semibold tracking-tight text-fg">{t('map.title')}</h1>
+  <p class="mb-4 mt-1 text-sm text-fg-tertiary">{t('module.map.desc')}</p>
+
+  <MapPanel client:only="preact" lang={lang} center={center} />
+
+  {/* Leyenda accesible fuera del lienzo del mapa */}
+  <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-fg-tertiary">
+    <span class="flex items-center gap-1.5">
+      <span class="h-2.5 w-2.5 rounded-full bg-danger"></span>{t('map.type.damage')}
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="h-2.5 w-2.5 rounded-full bg-primary"></span>{t('map.type.service')}
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="h-2.5 w-2.5 rounded-full bg-warning"></span>{t('map.type.help_point')}
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="h-2.5 w-2.5 rounded-full bg-success"></span>{t('map.type.safe')}
+    </span>
+  </div>
+</Layout>

@@ -50,11 +50,13 @@ Duplicar es imposible: si el ID existe, se enlaza (perdido↔encontrado).
 `kind` (`offer`/`need`), `category`, `quantity` (opc.), `expires_at` (opc.).
 **Estados:** `active` · `fulfilled` · `expired`. Emparejamiento categoría+zona.
 
-## Mapa de estado (`map_reports`) — ⏳ Fase 4
+## Mapa de estado (`map_reports`) — ✅ implementado
 
-`report_type` (daños / servicios / puntos de ayuda / "estoy a salvo"),
-`expires_at` (opc.); geolocalización en `cards.geo`. **Estados:** `active` ·
-`expired`. Carga por bounding-box + clustering.
+`report_type` (`damage` / `service` / `help_point` / `safe`), `expires_at`
+(caducidad en horas al crear; los caducados desaparecen del listado);
+geolocalización **obligatoria** en `cards.geo`. **Estados:** `active` ·
+`expired` (retirar/reactivar solo con token o moderación). Carga por
+bounding-box del viewport + clustering en cliente; sin contacto (minimización).
 
 ## Soporte
 

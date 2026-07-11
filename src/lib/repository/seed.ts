@@ -8,6 +8,8 @@ import type {
   GoodDirection,
   GoodStatus,
   GoodType,
+  MapReportCard,
+  MapReportType,
   OfferCard,
   OfferCategory,
   OfferKind,
@@ -21,7 +23,7 @@ import type {
   ProtectedContact,
   StoredCard,
 } from '@/lib/engine/types';
-import { ALL_OFFER_CATEGORIES } from '@/lib/engine/types';
+import { ALL_MAP_REPORT_TYPES, ALL_OFFER_CATEGORIES } from '@/lib/engine/types';
 import { hashToken, generateManageToken } from '@/lib/engine/tokens';
 
 const FIRST = ['María', 'Lucía', 'Carmen', 'Ana', 'Sofía', 'Marta', 'José', 'Antonio', 'Manuel', 'Carlos', 'David', 'Javier', 'Elena', 'Pablo', 'Rosa', 'Miguel', 'Laura', 'Andrés'];
@@ -192,6 +194,54 @@ export function seedStoredOffers(count = 22): StoredCard<OfferCard>[] {
     };
 
     out.push({ card, contact, manageTokenHash: hashToken(generateManageToken()) });
+  }
+  return out;
+}
+
+/** Centro de la ciudad demo (València) — el mapa arranca centrado aquí. */
+export const DEMO_MAP_CENTER = { lat: 39.4699, lng: -0.3763 };
+
+const MAP_NOTES: Record<MapReportType, string[]> = {
+  damage: ['Calle cortada por barro.', 'Cables caídos en la acera.', 'Puente inaccesible.', 'Bajos inundados.'],
+  service: ['Farmacia abierta.', 'Gasolinera operativa.', 'Zona con cobertura y luz.', 'Cajero funcionando.'],
+  help_point: ['Punto de reparto de agua.', 'Refugio habilitado en el polideportivo.', 'Puesto médico avanzado.'],
+  safe: ['Familia localizada, todos bien.', 'A salvo en casa de familiares.'],
+};
+
+export function seedStoredMapReports(count = 32): StoredCard<MapReportCard>[] {
+  const rand = rng(2024);
+  const out: StoredCard<MapReportCard>[] = [];
+  const now = Date.now();
+
+  for (let i = 0; i < count; i++) {
+    const pick = <T>(arr: T[]) => arr[Math.floor(rand() * arr.length)]!;
+    const reportType = ALL_MAP_REPORT_TYPES[i % ALL_MAP_REPORT_TYPES.length]!;
+    const createdAt = new Date(now - Math.floor(rand() * 2 * 86_400_000)).toISOString();
+    // ~1 de cada 8 caducado, para probar el filtrado de obsoletos.
+    const expired = i % 8 === 7;
+    const expiresAt = expired
+      ? new Date(now - 3_600_000).toISOString()
+      : new Date(now + (12 + Math.floor(rand() * 60)) * 3_600_000).toISOString();
+
+    const card: MapReportCard = {
+      id: `map-${(i + 1).toString().padStart(3, '0')}`,
+      module: 'map',
+      status: 'active',
+      zone: pick(ZONES),
+      geo: {
+        lat: DEMO_MAP_CENTER.lat + (rand() - 0.5) * 0.08,
+        lng: DEMO_MAP_CENTER.lng + (rand() - 0.5) * 0.10,
+      },
+      description: pick(MAP_NOTES[reportType]),
+      photoUrl: null,
+      createdAt,
+      updatedAt: createdAt,
+      deletedAt: null,
+      reportType,
+      expiresAt,
+    };
+
+    out.push({ card, contact: null, manageTokenHash: hashToken(generateManageToken()) });
   }
   return out;
 }

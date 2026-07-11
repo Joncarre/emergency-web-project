@@ -163,8 +163,11 @@ const map: ModuleDef = {
     { id: 'active', tone: 'info', active: true },
     { id: 'expired', tone: 'neutral', active: false },
   ],
-  transitions: [],
-  implemented: false,
+  transitions: [
+    { from: 'active', to: 'expired', by: ['owner', 'moderator'], actionKey: 'map.action.mark_expired' },
+    { from: 'expired', to: 'active', by: ['owner', 'moderator'], actionKey: 'map.action.reopen' },
+  ],
+  implemented: true,
 };
 
 export const MODULES: Record<ModuleId, ModuleDef> = { people, pets, goods, offers, map };

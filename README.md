@@ -30,7 +30,7 @@ Fundamentos + **módulo Personas de extremo a extremo** (la referencia del motor
 | Anti-abuso: rate-limit + validación/saneamiento (zod) | ✅ |
 | **Mascotas · Bienes · Ofertas/Necesidades** (sobre el motor) | ✅ |
 | **Persistencia Postgres + PostGIS** (misma interfaz Repository) | ✅ (build); ver "Modo Postgres" |
-| Mapa de estado/peligro | ⏳ (geo: requiere PostGIS, siguiente paso) |
+| **Mapa de estado/peligro** (viewport/bbox, clustering, caducidad) | ✅ |
 | CAPTCHA, subida de imágenes (EXIF strip), moderación | ⏳ Fase 5/7 |
 
 > **Modo demo:** sin `DATABASE_URL`, la app usa un repositorio **en memoria** con

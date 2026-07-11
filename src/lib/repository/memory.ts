@@ -9,10 +9,12 @@ import { peopleRepo } from './people-repo';
 import { petsRepo } from './pets-repo';
 import { goodsRepo } from './goods-repo';
 import { offersRepo } from './offers-repo';
+import { mapsRepo } from './maps-repo';
 
 export const memoryRepository: Repository = {
   ...peopleRepo,
   ...petsRepo,
   ...goodsRepo,
   ...offersRepo,
+  ...mapsRepo,
 };

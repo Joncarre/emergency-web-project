@@ -157,7 +157,8 @@ function CardBody({ card, lang }: { card: AnyCard; lang: Lang }) {
   if (card.module === 'people') return <PersonBody card={card} lang={lang} />;
   if (card.module === 'pets') return <PetBody card={card} lang={lang} />;
   if (card.module === 'goods') return <GoodBody card={card} lang={lang} />;
-  return <OfferBody card={card} lang={lang} />;
+  if (card.module === 'offers') return <OfferBody card={card} lang={lang} />;
+  return null; // los reportes del mapa tienen su propia vista (MapPanel)
 }
 
 function CardItem({ card, lang, basePath }: { card: AnyCard; lang: Lang; basePath: string }) {

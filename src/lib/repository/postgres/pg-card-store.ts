@@ -169,11 +169,15 @@ export class PgCardStore<T extends CardBase> {
     const f = fields as unknown as Record<string, unknown>;
     const client = await getPool().connect();
     try {
+      const geo = f.geo as { lat: number; lng: number } | null | undefined;
       await client.query('BEGIN');
       await client.query(
-        `INSERT INTO cards (id, module, status, zone, description, photo_url, manage_token_hash)
-         VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-        [id, this.cfg.moduleId, f.status, f.zone, f.description, f.photoUrl, hashToken(manageToken)],
+        `INSERT INTO cards (id, module, status, zone, geo, description, photo_url, manage_token_hash)
+         VALUES ($1,$2,$3,$4,
+           CASE WHEN $5::float8 IS NULL THEN NULL
+                ELSE ST_SetSRID(ST_MakePoint($5::float8, $6::float8), 4326)::geography END,
+           $7,$8,$9)`,
+        [id, this.cfg.moduleId, f.status, f.zone, geo?.lng ?? null, geo?.lat ?? null, f.description, f.photoUrl, hashToken(manageToken)],
       );
       const cols = ['card_id', ...this.cfg.insertCols];
       const vals = [id, ...this.cfg.insertValues(f)];

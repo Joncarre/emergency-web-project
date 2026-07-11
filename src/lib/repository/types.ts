@@ -9,6 +9,8 @@ import type {
   GoodCard,
   GoodDirection,
   GoodType,
+  MapReportCard,
+  MapReportType,
   OfferCard,
   OfferCategory,
   OfferKind,
@@ -218,6 +220,44 @@ export interface OfferMatch {
   score: number;
 }
 
+/* --- Mapa de estado/peligro --- */
+
+/** Bounding box del viewport: oeste/sur/este/norte (lng, lat, lng, lat). */
+export interface BBox {
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+}
+
+export interface ListMapReportsParams {
+  /** Solo los puntos dentro del viewport — NUNCA todos a la vez. */
+  bbox?: BBox;
+  reportType?: MapReportType;
+  includeExpired?: boolean;
+  limit?: number;
+}
+
+export interface ListMapReportsResult {
+  items: MapReportCard[];
+  /** Conteo por tipo dentro del bbox (antes del filtro de tipo). */
+  counts: Record<string, number>;
+}
+
+export interface CreateMapReportInput {
+  reportType: MapReportType;
+  geo: GeoPoint;
+  zone: string | null;
+  description: string | null;
+  /** Caducidad en horas desde ahora (null = sin caducidad). */
+  ttlHours: number | null;
+}
+
+export interface CreateMapReportResult {
+  card: MapReportCard;
+  manageToken: string;
+}
+
 /* --- Interfaz del repositorio --- */
 
 export interface Repository {
@@ -265,4 +305,11 @@ export interface Repository {
   transitionOffer(id: string, to: string, ctx: ActorContext): Promise<OfferCard>;
   resolveActorOffer(id: string, ctx: ActorContext): Promise<Actor>;
   revealOfferContact(id: string): Promise<ProtectedContact | null>;
+
+  // Mapa de estado/peligro
+  listMapReports(params: ListMapReportsParams): Promise<ListMapReportsResult>;
+  getMapReport(id: string): Promise<MapReportCard | null>;
+  createMapReport(input: CreateMapReportInput, ipHash: string | null): Promise<CreateMapReportResult>;
+  transitionMapReport(id: string, to: string, ctx: ActorContext): Promise<MapReportCard>;
+  resolveActorMapReport(id: string, ctx: ActorContext): Promise<Actor>;
 }

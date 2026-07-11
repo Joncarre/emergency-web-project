@@ -8,10 +8,12 @@ import { peoplePgRepo } from './people-pg';
 import { petsPgRepo } from './pets-pg';
 import { goodsPgRepo } from './goods-pg';
 import { offersPgRepo } from './offers-pg';
+import { mapPgRepo } from './map-pg';
 
 export const postgresRepository: Repository = {
   ...peoplePgRepo,
   ...petsPgRepo,
   ...goodsPgRepo,
   ...offersPgRepo,
+  ...mapPgRepo,
 };
